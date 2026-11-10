@@ -19,7 +19,8 @@ FONT_IDX = {'bold': 5, 'regular': 2}
 FFMPEG = sys.argv[1] if len(sys.argv) > 1 else '/opt/homebrew/opt/ffmpeg-full/bin/ffmpeg'
 
 W, H = 1080, 1350
-M = 54  # ระยะขอบ 5%
+M = 54  # ระยะขอบซ้ายขวา 5%
+TOP = 68  # ระยะขอบบนล่าง 5% (ทุกชิ้นรวมโลโก้และแคปซูลรหัส)
 SS = 3  # supersample สำหรับรูปทรงโค้ง
 
 # สี Uptown
@@ -98,15 +99,28 @@ def texts_by_role(tl):
       if is_label(l) and l['text'] not in labels:
         labels.append(l['text'])
   open_lines = {}
+  subs = []
   for l in t['open']['lines']:
-    if not is_label(l):
-      open_lines.setdefault(l['role'], l['text'])
+    if is_label(l):
+      continue
+    open_lines.setdefault(l['role'], l['text'])
+    if l['role'] == 'sub':
+      subs.append(l['text'])
   specs, floor = [], []
   if 'specs' in t:
     for l in t['specs']['lines']:
       if is_label(l) or l['role'] == 'price':
         continue
       (specs if l['role'] == 'title' or not specs else floor).append(l['text'])
+  # บรรทัด sub ของ open: ถ้าไม่มีกลุ่ม specs ให้ย้ายทุกบรรทัดลงแผงข้อมูล (บรรทัดแรก = สเปก ที่เหลือ = ฝั่งขวา)
+  # ถ้ามี specs อยู่แล้ว บรรทัดแรกอยู่หัวภาพ บรรทัดที่เหลือไปฝั่งขวาของแผง ไม่ให้หายไปไหน
+  head_sub = None
+  if subs:
+    if not specs:
+      specs, floor = [subs[0]], subs[1:] + floor
+    else:
+      head_sub = subs[0]
+      floor = floor + subs[1:]
   if 'floor' in t:
     floor += [l['text'] for l in t['floor']['lines'] if not is_label(l)]
   price = None
@@ -128,11 +142,15 @@ def texts_by_role(tl):
     for l in x['lines']:
       if not is_label(l) and l['role'] != 'price' and l['text'] not in extras:
         extras.append(l['text'])
+  # รหัสบนแคปซูล: ใช้บรรทัด role code ของ timeline (เช่น "รหัส 00000969") ถ้าได้แค่ตัวเลข เติม "รหัส " นำหน้า
+  code = open_lines.get('code') or str(tl.get('code', ''))
+  if not code.startswith('รหัส'):
+    code = 'รหัส ' + code
   return {
     'extras': extras,
-    'code': str(tl['code']) if tl.get('code') else open_lines['code'],
+    'code': code,
     'title': open_lines['title'],
-    'sub': open_lines.get('sub'),
+    'sub': head_sub,
     'specs': specs,
     'floor': floor,
     'price': price,
@@ -155,28 +173,42 @@ def grade(im):
 
 
 def focus_from(name):
+  # รับได้ทั้งชื่อ ('center', 'top-right', ...) และ [x, y] สัดส่วน 0–1
+  if isinstance(name, (list, tuple)) and len(name) == 2:
+    return float(name[0]), float(name[1])
   f = {'top-right': (1.0, 0.0), 'top-left': (0.0, 0.0), 'center': (0.5, 0.5),
        'bottom-right': (1.0, 1.0), 'bottom-left': (0.0, 1.0), 'top': (0.5, 0.0), 'bottom': (0.5, 1.0)}
   return f.get(name, (0.5, 0.5))
 
 
+def shot_region(shot, sw, sh):
+  if shot.get('crop_box'):
+    x0, y0, x1, y1 = shot['crop_box']
+    return max(0, x0), max(0, y0), min(sw, x1), min(sh, y1)
+  if shot.get('crop'):
+    c = shot['crop']
+    return c['x0'] * sw, c['y0'] * sh, c['x1'] * sw, c['y1'] * sh
+  return None
+
+
 def crop_cover(im, w, h, shot):
   sw, sh = im.size
-  # พื้นที่ที่อนุญาต: ใช้ crop ของ timeline ถ้ามี เพื่อไม่ให้สิ่งที่ตั้งใจตัดกลับมา
-  if 'crop' in shot:
-    c = shot['crop']
-    rx0, ry0, rx1, ry1 = c['x0'] * sw, c['y0'] * sh, c['x1'] * sw, c['y1'] * sh
+  # พื้นที่ที่อนุญาต: ใช้ crop (สัดส่วน) หรือ crop_box ([x0, y0, x1, y1] พิกเซลของต้นฉบับ) ของ timeline
+  # เพื่อไม่ให้สิ่งที่ตั้งใจตัดกลับมา ครอปจะอยู่ในกรอบนี้เสมอ
+  region = shot_region(shot, sw, sh)
+  if region:
+    rx0, ry0, rx1, ry1 = region
     fx, fy = focus_from(shot.get('focus', 'center'))
   else:
     rx0, ry0, rx1, ry1 = 0, 0, sw, sh
-    fx, fy = FOCUS_HINT.get(shot['file'], (0.5, 0.5))
+    fx, fy = FOCUS_HINT.get(shot['file'], focus_from(shot.get('focus', 'center')))
   rw, rh = rx1 - rx0, ry1 - ry0
   ar = w / h
   if rw / rh > ar:
     ch, cw = rh, rh * ar
   else:
     cw, ch = rw, rw / ar
-  if 'crop' in shot:
+  if region:
     x0 = rx0 + (rw - cw) * fx
     y0 = ry0 + (rh - ch) * fy
   else:
@@ -368,9 +400,9 @@ def fit_size(tx, text, size, weight, maxw, minsize):
 def orient(path, shot):
   # แนวของส่วนที่ใช้ได้จริง (ถ้า shot มี crop ใช้ขนาดหลังครอป)
   w, h = Image.open(path).size
-  c = shot.get('crop')
-  if c:
-    w, h = w * (c['x1'] - c['x0']), h * (c['y1'] - c['y0'])
+  r = shot_region(shot, w, h)
+  if r:
+    w, h = r[2] - r[0], r[3] - r[1]
   return 'port' if h > w * 1.05 else 'land'
 
 
@@ -457,7 +489,7 @@ def main():
   extra_h = 38 * len(T['extras'])
   py = 904 - extra_h
   gap = 18
-  ry0, ry1 = 208, py - gap
+  ry0, ry1 = TOP + 154, py - gap
   slots = LAYOUTS[layout]['slots'](W - 2 * M, ry1 - ry0, gap)
   use = assign(files, ori, slots)
   slots = slots[:len(use)]
@@ -468,18 +500,20 @@ def main():
     cv = background()
 
     # หัวภาพ
-    logo = Image.open(LOGO).convert('RGBA').resize((128, 128), Image.LANCZOS)
-    cv.paste(logo, (M, 40), logo)
-    tx0 = M + 128 + 24
+    # ทุกชิ้นห่างขอบบน ≥ TOP (5% ของความสูง)
+    logo = Image.open(LOGO).convert('RGBA').resize((120, 120), Image.LANCZOS)
+    cv.paste(logo, (M, TOP), logo)
+    tx0 = M + 120 + 24
     code_size = 30
     cw = int(tx.width(T['code'], code_size, 'regular')) + 48
-    capsule(cv, (W - M - cw, 44, cw, 50), (92, 14, 24))
-    tx.add(T['code'], code_size, 'regular', TXT_GOLD, W - M - cw / 2, 80, 'center')
+    capsule(cv, (W - M - cw, TOP, cw, 50), (92, 14, 24))
+    tx.add(T['code'], code_size, 'regular', TXT_GOLD, W - M - cw / 2, TOP + 36, 'center')
     if T['sub']:
-      tx.add(T['sub'], 32, 'regular', TXT_CREAM, tx0, 82)
+      tx.add(T['sub'], 32, 'regular', TXT_CREAM, tx0, TOP + 38)
+    # ชื่อโครงการเต็มความกว้างได้ถ้าไม่มี sub (แคปซูลรหัสอยู่เหนือชื่อ)
     ts = fit_size(tx, T['title'], 52, 'bold', W - M - tx0, 36)
-    tx.add(T['title'], ts, 'bold', TXT_GOLD, tx0, 150)
-    fade_line(cv, M, W - M, 190, 2)
+    tx.add(T['title'], ts, 'bold', TXT_GOLD, tx0, TOP + 108)
+    fade_line(cv, M, W - M, TOP + 136, 2)
 
     # รูป
     for (sx, sy, sw, sh), f in zip(slots, use):

@@ -253,9 +253,15 @@ def fit_size(tx, text, size, weight, maxw, minsize):
 
 # ---------- เลย์เอาต์ ----------
 
+def code_label(code):
+  # แคปซูลรหัสต้องมีคำว่า "รหัส" นำหน้าเสมอ
+  code = str(code)
+  return code if code.startswith('รหัส') else 'รหัส ' + code
+
+
 def mosaic_slots(x0, y0, w, g):
   # แถวบน: รูปหลักแนวนอน + รูปแนวตั้งด้านขวา (สูง 400) / แถวล่าง: 2 รูปแนวนอนกว้างเท่ากัน (สูง 250)
-  top, bot = 400, 250
+  top, bot = 396, 246
   pw = 318
   hw = w - pw - g
   bw = (w - g) // 2
@@ -274,28 +280,30 @@ def main():
     cv = Image.new('RGB', (W, H), BG)
 
     # ---- หัวภาพ: โลโก้ซ้าย / รหัสในแคปซูลเส้นบางขวา ----
-    lg = 84
+    # ทุกชิ้นของหัวภาพห่างขอบบน 5% (y 68)
+    lg = 80
     logo = Image.open(LOGO).convert('RGBA').resize((lg, lg), Image.LANCZOS)
-    cv.paste(logo, (M, 46), logo)
+    cv.paste(logo, (M, 68), logo)
     cs = 30
-    cw = int(tx.width(T['code'], cs, 'semi')) + 44
-    pill(cv, (W - M - cw, 62, cw, 52), None, INK + (255,), 2)
-    tx.add(T['code'], cs, 'semi', TXT_INK, W - M - cw / 2, 98, 'center')
+    code = code_label(T['code'])
+    cw = int(tx.width(code, cs, 'semi')) + 44
+    pill(cv, (W - M - cw, 68, cw, 52), None, INK + (255,), 2)
+    tx.add(code, cs, 'semi', TXT_INK, W - M - cw / 2, 104, 'center')
     # ป้าย "ให้เช่า" แคปซูลเสจ ต่อจากโลโก้
     ss = 30
     sw = int(tx.width(T['sub'], ss, 'semi')) + 44
     sx = M + lg + 22
-    pill(cv, (sx, 62, sw, 52), SAGE + (255,))
-    tx.add(T['sub'], ss, 'semi', TXT_WHITE, sx + sw / 2, 98, 'center')
+    pill(cv, (sx, 68, sw, 52), SAGE + (255,))
+    tx.add(T['sub'], ss, 'semi', TXT_WHITE, sx + sw / 2, 104, 'center')
 
     # ชื่อโครงการตัวหนา + เส้นไม้สั้นใต้ชื่อ
     ts = fit_size(tx, T['title'], 58, 'bold', W - 2 * M, 40)
-    tx.add(T['title'], ts, 'bold', TXT_INK, M, 198)
-    cv.paste(Image.new('RGB', (64, 4), WOOD), (M, 220))
+    tx.add(T['title'], ts, 'bold', TXT_INK, M, 208)
+    cv.paste(Image.new('RGB', (64, 4), WOOD), (M, 230))
 
     # ---- รูป ----
     gap = 14
-    slots = mosaic_slots(M, 246, W - 2 * M, gap)
+    slots = mosaic_slots(M, 254, W - 2 * M, gap)
     for (f, fx, fy), box in zip(IMAGES, slots):
       print(f, box)
       im = grade(Image.open(os.path.join(IMG_DIR, f)))

@@ -161,7 +161,13 @@ def gold_line(canvas, x0, x1, y, th=2, fade_l=True, fade_r=True):
 
 # ---------- รูปหลักขอบล่างโค้ง ----------
 
-HERO_Y0, HERO_Y1 = 196, 770
+HERO_Y0, HERO_Y1 = 222, 770  # หัวภาพเริ่มที่ขอบบน 5% (y 68) รูปหลักจึงเริ่มที่ 222
+
+
+def code_label(code):
+  # แคปซูลรหัสต้องมีคำว่า "รหัส" นำหน้าเสมอ
+  code = str(code)
+  return code if code.startswith('รหัส') else 'รหัส ' + code
 
 
 def hero_edge(x):
@@ -332,7 +338,7 @@ def main():
 
     # ---- หัวภาพ: โลโก้ (วงทอง) + ชื่อโครงการทอง + รหัสในแคปซูลใต้ชื่อ ----
     ls = 122
-    lx, ly = M, 40
+    lx, ly = M, 72  # วงทองรอบโลโก้เริ่มที่ y 68 (ขอบบน 5%)
     ring = Image.new('L', ((ls + 8) * SS, (ls + 8) * SS), 0)
     ImageDraw.Draw(ring).ellipse((0, 0, (ls + 8) * SS - 1, (ls + 8) * SS - 1), fill=255)
     ring = ring.resize((ls + 8, ls + 8), Image.LANCZOS)
@@ -341,13 +347,14 @@ def main():
     cv.paste(logo, (lx, ly), logo)
     tx0 = lx + ls + 28
     ts = fit_size(tx, TITLE, 64, 'bold', W - M - tx0, 44)
-    tx.add(TITLE, ts, 'bold', TXT_GOLD, tx0, 116, shadow=True)
+    tx.add(TITLE, ts, 'bold', TXT_GOLD, tx0, 148, shadow=True)
     cs = 30
-    cw = int(tx.width(CODE, cs, 'regular')) + 44
-    cy0, ch = 132, 44
+    code = code_label(CODE)
+    cw = int(tx.width(code, cs, 'regular')) + 44
+    cy0, ch = 164, 44
     cv.paste(gold_gradient(cw, ch), (tx0, cy0), rounded_mask(cw, ch, ch // 2))
     cv.paste(Image.new('RGB', (cw - 4, ch - 4), NAVY_DARK), (tx0 + 2, cy0 + 2), rounded_mask(cw - 4, ch - 4, ch // 2 - 2))
-    tx.add(CODE, cs, 'regular', TXT_GOLD, tx0 + cw / 2, cy0 + 32, 'center')
+    tx.add(code, cs, 'regular', TXT_GOLD, tx0 + cw / 2, cy0 + 32, 'center')
     gold_line(cv, tx0 + cw + 18, W - M, cy0 + ch // 2, 2, False, True)
 
     # ---- รูปหลักเต็มกว้าง ขอบล่างโค้ง + รูปรองกรอบทองซ้อนมุมขวาล่าง ----

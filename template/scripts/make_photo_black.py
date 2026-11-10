@@ -98,6 +98,12 @@ def grade(im):
   return Image.fromarray((a * 255 + 0.5).astype(np.uint8))
 
 
+def code_label(code):
+  # แคปซูลรหัสต้องมีคำว่า "รหัส" นำหน้าเสมอ
+  code = str(code)
+  return code if code.startswith('รหัส') else 'รหัส ' + code
+
+
 def crop_cover(im, w, h, spec):
   # ครอปให้เต็มช่องโดยไม่ยืด/บีบ ภายในกรอบที่อนุญาตเท่านั้น
   sw, sh = im.size
@@ -388,15 +394,17 @@ def main():
 
     # หัวภาพ: โลโก้ซ้ายบน รหัสในแคปซูลขอบทองขวาบน
     logo = Image.open(LOGO).convert('RGBA').resize((120, 120), Image.LANCZOS)
-    shadow(cv, (M, 40, 120, 120), 60, off=4, blur=10, alpha=170)
-    cv.paste(logo, (M, 40), logo)
+    # โลโก้และแคปซูลรหัสห่างขอบบน 5% (y 68)
+    shadow(cv, (M, 68, 120, 120), 60, off=4, blur=10, alpha=170)
+    cv.paste(logo, (M, 68), logo)
     cs = 32
-    cw = int(tx.width(TXT['code'], cs, 'bold')) + 52
+    code = code_label(TXT['code'])
+    cw = int(tx.width(code, cs, 'bold')) + 52
     ch = 54
     cx0 = W - M - cw
-    cv.paste(Image.new('RGB', (cw, ch), (12, 12, 14)), (cx0, 52), rounded_mask(cw, ch, ch // 2))
-    gold_frame(cv, (cx0, 52, cw, ch), ch // 2, 2)
-    tx.add(TXT['code'], cs, 'bold', WHITE, cx0 + cw / 2, 52 + ch / 2 + cs * 0.36, 'center')
+    cv.paste(Image.new('RGB', (cw, ch), (12, 12, 14)), (cx0, 68), rounded_mask(cw, ch, ch // 2))
+    gold_frame(cv, (cx0, 68, cw, ch), ch // 2, 2)
+    tx.add(code, cs, 'bold', WHITE, cx0 + cw / 2, 68 + ch / 2 + cs * 0.36, 'center')
 
     # ป้าย "ให้เช่า" (แคปซูลทองทึบ) + ชื่อโครงการทองไล่เฉด ทับส่วนที่จางของรูปหลัก
     ds = 30
