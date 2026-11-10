@@ -11,8 +11,8 @@
 - `template/scripts/` — สคริปต์ฐานถาวรของภาพรวม: `make_photo.py` (แดงทอง), `make_photo_navy.py` (กรมท่าทอง), `make_photo_black.py` (ดำทอง), `make_photo_minimal.py` (มินิมอลครีม/เบจ) คัดลอกไปใช้ ห้ามแก้ในที่ เมื่อเพิ่มสไตล์ใหม่ ให้เพิ่มชื่อไฟล์และชื่อสไตล์ในรายการนี้และในหัวข้อ "ภาพรวมห้ามหน้าตาเหมือนกันทุกงาน" ด้วย
 - `template/photo/` — ตัวอย่างงานภาพรวม (ใช้เป็นแรงบันดาลใจ)
 - `global/` — ไฟล์แบรนด์ Uptown ใช้ทุกงาน: `logo.png` (โลโก้วงกลม) และรูปอ้างอิงอื่นๆ
-- `work/<รหัส>/` — งานของแต่ละรายการ: `timeline.json` (รูปที่คัดและข้อความที่ใช้บนภาพรวม), `make_photo.py`, `photo/photo.jpg`
-- `.claude/roles/`, `.claude/agents/` — บทบาท `footage`, agent `footage-intake` (รับงาน), `footage-assistant` (คัดรูปและข้อความ เขียน timeline.json), `footage-assistant-photo` (ทำภาพรวม) และ `footage-auditor` (ตรวจภาพรวม, อ่านอย่างเดียว)
+- `work/<รหัส>/` — งานของแต่ละรายการ: `timeline.json` (รูปที่คัดและข้อความที่ใช้บนภาพรวม), `color_grade.py` + `graded/` (รูปที่ footage-assistant-photo ปรับสีและแสงให้เข้ากับสไตล์จาก `originals/`), `make_photo.py`, `photo/photo.jpg`
+- `.claude/roles/`, `.claude/agents/` — บทบาท `footage`, agent `footage-intake` (รับงาน), `footage-assistant` (คัดรูปและข้อความ เขียน timeline.json), `footage-assistant-photo` (ปรับสีและแสงรูป + ทำภาพรวม) และ `footage-auditor` (ตรวจภาพรวม, อ่านอย่างเดียว)
 
 ## การรันสคริปต์
 - `make_photo.py` ใช้ Pillow, fonttools และ numpy: สร้าง venv ชั่วคราวใน scratchpad แล้ว `pip install pillow fonttools numpy` อย่าติดตั้งลงระบบ
