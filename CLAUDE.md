@@ -5,18 +5,18 @@
 
 ## โครงสร้างโฟลเดอร์
 - `~/Desktop/footage/assets/<รหัส>/` — รูปต้นฉบับของแต่ละรายการ (อยู่นอกโปรเจกต์) บางรายการมี `info.rtfd` หรือ `รายละเอียด.txt` เก็บข้อมูลประกาศ
-- `uploads/<yyyymmddhhmmss>/` — งานที่รับเข้ามา (โดย agent `footage-intake`): `images/` (01.jpg, 02.jpg, … ปรับแสงให้เท่ากันแล้ว ใช้ทำภาพรวม), `originals/` (รูปเดียวกันก่อนปรับแสง), `info.txt` (ข้อมูลประกาศ), `brief.md` (brief สำหรับ footage-assistant) ลบทิ้งหลังส่งงาน
+- `uploads/<yyyymmddhhmmss>/` — งานที่รับเข้ามา (โดย agent `footage-intake`): `images/` (01.jpg, 02.jpg, … รูปต้นฉบับ ไม่ปรับแสง), `info.txt` (ข้อมูลประกาศ), `brief.md` (brief สำหรับ footage-assistant) ลบทิ้งหลังส่งงาน
 - `assets/<รหัส>/` (ในโปรเจกต์ ไม่บันทึกไฟล์ใน git) — โฟลเดอร์รวมงานต่อทรัพย์: รูปที่รับเข้ามา + `info.txt` + ภาพรวมที่เสร็จแล้ว (ตอนส่งงานย้ายมาจาก photos/ ไม่เก็บซ้ำ) งานเก่าบางงานมีวิดีโอด้วย ถ้าไม่มีรหัสใช้ `yymmddxxx` (xxx = ลำดับงานของวัน 3 หลัก)
 - `photos/<รหัส>.jpg` — ภาพรวมที่เสร็จแล้ว สร้างโดย `work/<รหัส>/make_photo.py` (ไฟล์กลางที่ `work/<รหัส>/photo/photo.jpg`)
 - `template/scripts/` — สคริปต์ฐานถาวรของภาพรวม: `make_photo.py` (แดงทอง), `make_photo_navy.py` (กรมท่าทอง), `make_photo_black.py` (ดำทอง), `make_photo_minimal.py` (มินิมอลครีม/เบจ) และ `color_grade.py` (ปรับสีและแสงรูปให้เข้ากับสไตล์ ใช้ทุกงาน) คัดลอกไปใช้ ห้ามแก้ในที่ เมื่อเพิ่มสไตล์ใหม่ ให้เพิ่มชื่อไฟล์และชื่อสไตล์ในรายการนี้และในหัวข้อ "ภาพรวมห้ามหน้าตาเหมือนกันทุกงาน" ด้วย
 - `template/photo/` — ตัวอย่างงานภาพรวม (ใช้เป็นแรงบันดาลใจ)
 - `global/` — ไฟล์แบรนด์ Uptown ใช้ทุกงาน: `logo.png` (โลโก้วงกลม) และรูปอ้างอิงอื่นๆ
-- `work/<รหัส>/` — งานของแต่ละรายการ: `timeline.json` (รูปที่คัดและข้อความที่ใช้บนภาพรวม), `color_grade.py` + `graded/` (รูปที่ footage-assistant-photo ปรับสีและแสงให้เข้ากับสไตล์จาก `originals/`), `make_photo.py`, `photo/photo.jpg`
-- `.claude/roles/`, `.claude/agents/` — บทบาท `footage`, agent `footage-intake` (รับงาน), `footage-assistant` (คัดรูปและข้อความ เขียน timeline.json), `footage-assistant-photo` (ปรับสีและแสงรูป + ทำภาพรวม) และ `footage-auditor` (ตรวจภาพรวม และถ้าผ่านจะส่งงาน: ย้ายเข้า `assets/<รหัส>/` แล้วลบไฟล์งาน)
+- `work/<รหัส>/` — งานของแต่ละรายการ: `timeline.json` (รูปที่คัดและข้อความที่ใช้บนภาพรวม), `color_grade.py` + `graded/` (รูปที่ footage-assistant-photo ปรับสีและแสงให้เข้ากับสไตล์จาก `uploads/<timestamp>/images/`), `make_photo.py`, `photo/photo.jpg`
+- `.claude/roles/`, `.claude/agents/` — บทบาท `footage`, agent `footage-intake` (รับงาน), `footage-assistant` (คัดรูปและข้อความ เขียน timeline.json), `footage-assistant-photo` (ปรับสีและแสงรูป + ทำภาพรวม) และ `footage-auditor` (ตรวจเฉพาะข้อความบนภาพรวม และถ้าผ่านจะส่งงาน: ย้ายเข้า `assets/<รหัส>/` แล้วลบไฟล์งาน)
 
 ## การรันสคริปต์
 - `make_photo.py` และ `color_grade.py` ใช้ Pillow, fonttools และ numpy จาก venv ร่วมที่ `<scratchpad>/footage-venv/` ทุกงานใน session เดียวกันใช้ venv นี้ต่อกัน ไม่สร้างใหม่และไม่ลบทุกงาน ถ้ายังไม่มีให้สร้างด้วย `python3 -m venv` แล้วรัน `pip install pillow fonttools numpy` อย่าติดตั้งลงระบบ
-- ffmpeg: `/opt/homebrew/opt/ffmpeg-full/bin/ffmpeg` (keg-only ต้องใช้ path เต็ม) ใช้ปรับแสงรูปตอนรับงาน
+- ffmpeg: `/opt/homebrew/opt/ffmpeg-full/bin/ffmpeg` (keg-only ต้องใช้ path เต็ม) ใช้ครอปซูมตรวจภาพ และวาดข้อความไทยเมื่อ Pillow ไม่มี libraqm
 - โค้ดใช้ indent 2 ช่อง
 
 ## ข้อความภาษาไทยและข้อมูลประกาศ

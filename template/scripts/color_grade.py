@@ -25,7 +25,7 @@ import numpy as np
 from PIL import Image, ImageFilter
 
 # ---------------- ตั้งค่างาน (แก้ในสำเนา) ----------------
-SRC = 'uploads/<ts>/originals'       # ต้นฉบับก่อนปรับแสง ห้ามใช้ images/
+SRC = 'uploads/<ts>/images'          # รูปที่ intake คัดลอกมา (ยังไม่ปรับแสง)
 DST = 'work/<รหัส>/graded'
 FILES = ['01.jpg']                   # เฉพาะรูปใน shots
 STYLE = 'navy'                       # navy | black | minimal | red
