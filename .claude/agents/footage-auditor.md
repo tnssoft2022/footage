@@ -34,6 +34,7 @@ tools: Read, Bash, Glob, Grep
   - วัดความสว่างเฉลี่ยของแต่ละช่อง ถ้าห่างกันเกินประมาณ 15 ระดับถือว่า ⚠️
   - หน้าต่างต้องไม่ขาวโพลนมากกว่าใน `originals/`
   - โทนต้องเข้ากับภาพอ้างอิงใน `template/photo/` ที่ footage-assistant-photo รายงานว่าใช้
+  - วัดค่าช่องรูปได้ด้วย `<scratchpad>/footage-venv/bin/python work/<รหัส>/color_grade.py --measure <ภาพรวม> x:y:w:h ...` (ไม่ต้องสร้าง venv เอง ถ้ามี venv นี้อยู่แล้ว)
   - รายการที่ต้องแก้เรื่องสีและแสงส่งให้ footage-assistant-photo (`work/<รหัส>/color_grade.py`)
 
 ### 3. ข้อความ (สำคัญที่สุด)
