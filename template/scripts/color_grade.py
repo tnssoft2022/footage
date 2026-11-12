@@ -28,7 +28,7 @@ from PIL import Image, ImageFilter
 SRC = 'uploads/<ts>/images'          # รูปที่ intake คัดลอกมา (ยังไม่ปรับแสง)
 DST = 'work/<รหัส>/graded'
 FILES = ['01.jpg']                   # เฉพาะรูปใน shots
-STYLE = 'navy'                       # navy | black | minimal | red
+STYLE = 'navy'                       # navy | black | minimal | red | teal
 
 # เป้าหมายตามสไตล์: ผนัง R−B, G−B (หน่วย 0–255) และ luma เฉลี่ยของรูป
 STYLE_TARGETS = {
@@ -36,6 +36,8 @@ STYLE_TARGETS = {
   'black': {'rb': 2.0, 'gb': 2.0, 'luma': 160.0},
   'minimal': {'rb': 6.0, 'gb': 2.0, 'luma': 160.0},
   'red': {'rb': 5.0, 'gb': 2.0, 'luma': 160.0},
+  # teal: รูปภายในห้องของ 02.jpeg เป็นภาพสต็อกอมส้ม (R−B +12 ถึง +22) อุ่นเกินกฎผนังขาว จึงใช้กลางๆ ค่อนเย็นเข้ากับพื้นขาวเขียวหัวเป็ด
+  'teal': {'rb': 3.0, 'gb': 2.0, 'luma': 160.0},
 }
 
 # ค่ากลาง ใช้กับทุกรูป
